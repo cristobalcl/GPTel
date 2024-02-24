@@ -21,6 +21,16 @@ class BotContext:
     pass
 
 
+def telegram_wrapper(handler: Callable) -> Callable:
+    async def wrapped_function(update: Update, context: CallbackContext):
+        async_gen = handler(TelegramBotContext(update, context))
+        async for message in async_gen:
+            if isinstance(message, str):
+                await update.message.reply_html(message)
+
+    return wrapped_function
+
+
 class TelegramBotContext(BotContext):
     def __init__(self, update: Update, context: CallbackContext):
         self.update = update
@@ -40,14 +50,7 @@ class TelegramApplication(AbstractApplication):
         self.application.run_polling(allowed_updates=Update.ALL_TYPES)
 
     def add_handler(self, command: str, handler: Callable):
-        def wrapper(handler: Callable) -> Callable:
-            async def wrapped_function(update: Update, context: CallbackContext):
-                result = await handler(TelegramBotContext(update, context))
-                return result
-
-            return wrapped_function
-
-        self.application.add_handler(CommandHandler(command, wrapper(handler)))
+        self.application.add_handler(CommandHandler(command, telegram_wrapper(handler)))
 
 
 class TelegramClient(AbstractClient):

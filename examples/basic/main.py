@@ -6,7 +6,7 @@ bot = GPTelBot()
 
 @bot.command("help")
 async def command_help(bot_context: BotContext):
-    pass
+    yield r"Help!"
 
 
 bot.run()
