@@ -1,0 +1,49 @@
+[tool.poetry]
+name = "gptel"
+version = "0.1.0"
+description = "Framework to build Telegram bots using OpenAI's GPT API"
+authors = ["Cristóbal Carnero Liñán <ccarnerolinan@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+python-telegram-bot = "^20.8"
+
+[tool.poetry.group.dev.dependencies]
+nox = "^2023.4.22"
+black = "^24.2.0"
+blackdoc = "^0.3.9"
+isort = "^5.13.2"
+ruff = "^0.2.2"
+mypy = "^1.8.0"
+nox-poetry = "^1.0.3"
+coverage = {extras = ["toml"], version = "^7.4.3"}
+pytest = "^8.0.1"
+pytest-cov = "^4.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+ignore_missing_imports = true
+follow_imports = "skip"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
+  "tests",
+]
+
+[tool.coverage.paths]
+source = [
+  "src",
+  "*/site-packages",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["gptel"]
+
+[tool.coverage.report]
+show_missing = true

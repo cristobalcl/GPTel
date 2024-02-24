@@ -1,0 +1,5 @@
+.envrc
+.coverage
+.python-version
+__pycache__
+dist/
