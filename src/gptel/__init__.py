@@ -1,7 +1,11 @@
 from .bot import GPTelBot
-from .client import BotContext
+from .base import AbstractApplication, AbstractClient, BotContext, ReplyTyping, ReplyImage
 
 __all__ = [
     "GPTelBot",
+    "AbstractApplication",
+    "AbstractClient",
     "BotContext",
+    "ReplyTyping",
+    "ReplyImage",
 ]
