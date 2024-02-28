@@ -1,7 +1,7 @@
 from gptel import GPTelBot, BotContext, ReplyTyping, ReplyImage
 
 
-bot = GPTelBot()
+bot = GPTelBot(data_default={"flag": False})
 
 
 @bot.command("start")
@@ -12,6 +12,12 @@ async def command_start(context: BotContext):
 @bot.command("help")
 async def command_help(context: BotContext):
     yield r"Help!"
+
+
+@bot.command("switch")
+async def command_switch(context: BotContext):
+    context.data["flag"] = not context.data["flag"]
+    yield r"Switch on!" if context.data["flag"] else r"Switch off!"
 
 
 @bot.command("image")

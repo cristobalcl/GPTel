@@ -31,7 +31,9 @@ class FakeClient(AbstractClient):
     def __init__(self):
         pass
 
-    def get_application(self, token: str) -> AbstractApplication:
+    def get_application(
+        self, token: str, data_default: Dict = {}
+    ) -> AbstractApplication:
         return FakeApplication(token)
 
 

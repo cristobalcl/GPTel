@@ -1,5 +1,5 @@
-from typing import Optional, Callable, Dict
 import os
+from typing import Callable, Dict, Optional
 
 from .base import AbstractClient
 from .telegram_client import TelegramClient
@@ -7,14 +7,20 @@ from .telegram_client import TelegramClient
 
 class GPTelBot:
     def __init__(
-        self, token: Optional[str] = None, client: Optional[AbstractClient] = None
+        self,
+        data_default: Dict = {},
+        token: Optional[str] = None,
+        client: Optional[AbstractClient] = None,
     ):
+        self.data_default = data_default
         self.token = token or os.getenv("TELEGRAM_TOKEN")
+        if not self.token:
+            raise ValueError("No token")
         self.client = client or TelegramClient()
-        self.application = self.client.get_application(self.token)
+        self.application = self.client.get_application(self.token, self.data_default)
         self.command_handlers: Dict[str, Callable] = {}
-        self.chat_handler: Callable = None
-        self.audio_handler: Callable = None
+        self.chat_handler: Optional[Callable] = None
+        self.audio_handler: Optional[Callable] = None
 
     def command(self, command: str):
         def decorator(func: Callable):

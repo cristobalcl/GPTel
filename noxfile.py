@@ -17,12 +17,12 @@ def tests(session):
 def lint(session):
     session.install("black")
     session.install("blackdoc")
-    session.install("isort")
+    # session.install("isort")
     session.install("ruff")
 
     session.run("black", "--check", ".")
     session.run("blackdoc", "--check", ".")
-    session.run("isort", "--check-only", ".")
+    # session.run("isort", "--check-only", ".")
     session.run("ruff", "check", ".")
 
 

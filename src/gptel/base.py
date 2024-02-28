@@ -1,8 +1,10 @@
-from typing import Callable
 from abc import abstractmethod
+from typing import Callable, Dict
 
 
 class AbstractApplication:
+    data_default: Dict = {}
+
     @abstractmethod
     def run(self):
         pass
@@ -22,7 +24,9 @@ class AbstractApplication:
 
 class AbstractClient:
     @abstractmethod
-    def get_application(self, token: str) -> AbstractApplication:
+    def get_application(
+        self, token: str, data_default: Dict = {}
+    ) -> AbstractApplication:
         pass
 
 
@@ -46,3 +50,4 @@ class BotContext:
         self.user_html = ""
         self.message = ""
         self.tmp_audio_path = None
+        self.data = {}

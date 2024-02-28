@@ -1,28 +1,33 @@
-from typing import Callable
+from typing import Callable, Dict
 
 from telegram import Update
+from telegram.constants import ChatAction
 from telegram.ext import (
     Application,
     CommandHandler,
-    MessageHandler,
     ContextTypes,
+    MessageHandler,
     filters,
 )
-from telegram.constants import ChatAction
 
 from .base import (
     AbstractApplication,
     AbstractClient,
     BotContext,
-    ReplyTyping,
     ReplyImage,
+    ReplyTyping,
 )
 from .services import TranscriptionClient
 from .utils import temporary_file_path
 
 
 class TelegramBotContext(BotContext):
-    def __init__(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    def __init__(
+        self,
+        update: Update,
+        context: ContextTypes.DEFAULT_TYPE,
+        data_default: Dict = {},
+    ):
         self.update = update
         self.context = context
         self.bot = context.bot
@@ -34,6 +39,9 @@ class TelegramBotContext(BotContext):
         self.user_html = self.user.mention_html()
         self.message = self.update.message.text
         self.tmp_audio_path = None
+        self.data = context.chat_data  # A new dictionary should not be created (FIXME)
+        for key, value in data_default.items():
+            self.data.setdefault(key, value)
 
 
 async def telegram_send_typing(update, context):
@@ -42,9 +50,9 @@ async def telegram_send_typing(update, context):
     )
 
 
-def telegram_wrapper(handler: Callable) -> Callable:
+def telegram_wrapper(handler: Callable, data_default: Dict = {}) -> Callable:
     async def wrapped_function(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        async_gen = handler(TelegramBotContext(update, context))
+        async_gen = handler(TelegramBotContext(update, context, data_default))
         async for message in async_gen:
             if isinstance(message, str):
                 await update.message.reply_html(message)
@@ -66,7 +74,7 @@ def telegram_text_wrapper(handler: Callable) -> Callable:
 
 
 def telegram_audio_wrapper(handler: Callable) -> Callable:
-    async def wrapped_function(context: BotContext):
+    async def wrapped_function(context: TelegramBotContext):
         yield ReplyTyping()
         with temporary_file_path(suffix=".ogg") as tmp_audio_path:
             context.tmp_audio_path = tmp_audio_path
@@ -86,20 +94,23 @@ def telegram_audio_wrapper(handler: Callable) -> Callable:
 
 
 class TelegramApplication(AbstractApplication):
-    def __init__(self, token: str):
+    def __init__(self, token: str, data_default: Dict = {}):
         self.application = Application.builder().token(token).build()
+        self.data_default = data_default
 
     def run(self):
         self.application.run_polling(allowed_updates=Update.ALL_TYPES)
 
     def add_handler(self, command: str, handler: Callable):
-        self.application.add_handler(CommandHandler(command, telegram_wrapper(handler)))
+        self.application.add_handler(
+            CommandHandler(command, telegram_wrapper(handler, self.data_default))
+        )
 
     def set_chat_handler(self, handler: Callable):
         self.application.add_handler(
             MessageHandler(
                 filters.TEXT & ~filters.COMMAND,
-                telegram_wrapper(telegram_text_wrapper(handler)),
+                telegram_wrapper(telegram_text_wrapper(handler), self.data_default),
             )
         )
 
@@ -107,7 +118,7 @@ class TelegramApplication(AbstractApplication):
         self.application.add_handler(
             MessageHandler(
                 filters.VOICE,
-                telegram_wrapper(telegram_audio_wrapper(handler)),
+                telegram_wrapper(telegram_audio_wrapper(handler), self.data_default),
             )
         )
 
@@ -116,5 +127,7 @@ class TelegramClient(AbstractClient):
     def __init__(self):
         pass
 
-    def get_application(self, token: str) -> AbstractApplication:
-        return TelegramApplication(token)
+    def get_application(
+        self, token: str, data_default: Dict = {}
+    ) -> AbstractApplication:
+        return TelegramApplication(token, data_default)
