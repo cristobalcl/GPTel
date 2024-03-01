@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "gptel"
 version = "0.1.0"
-description = "Framework to build Telegram bots using OpenAI's GPT API"
+description = "Framework to build Telegram bots"
 authors = ["Cristóbal Carnero Liñán <ccarnerolinan@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.9"
 python-telegram-bot = "^20.8"
 openai = "^1.12.0"
 

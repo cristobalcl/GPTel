@@ -1,9 +1,11 @@
-name: Release
+name: Tests
 
 on:
   push:
-    tags:
+    tags-ignore:
       - "[0-9]+.[0-9]+.[0-9]+"
+  pull_request:
+    branches: [ master ]
 
 jobs:
   lint:
@@ -52,24 +54,3 @@ jobs:
 
       - name: Run tests
         run: poetry run nox --session tests-${{ matrix.python-version }}
-
-  release:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11' 
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1.3.1
-        env:
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
-
-      - name: Build and publish Python package
-        run: poetry publish --build
-        env:
-          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}

@@ -1,7 +1,7 @@
 import nox_poetry
 
 
-@nox_poetry.session(python=["3.11"])
+@nox_poetry.session(python=["3.9", "3.10", "3.11"])
 def tests(session):
     session.install("pytest")
     session.install("pytest-cov")
