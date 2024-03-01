@@ -16,6 +16,7 @@ async def command_help(context: BotContext):
 
 @bot.command("switch")
 async def command_switch(context: BotContext):
+    # context.data is specific for current chat.
     context.data["flag"] = not context.data["flag"]
     yield r"Switch on!" if context.data["flag"] else r"Switch off!"
 
@@ -23,9 +24,12 @@ async def command_switch(context: BotContext):
 @bot.command("image")
 async def command_image(context: BotContext):
     yield ReplyTyping()
+    # ReplyImage only supports URL at the moment.
     yield ReplyImage("https://picsum.photos/300/300.jpg")
 
 
+# This will handle both text chat and voice messages, that will be converted automatically
+# to text using OpenAI's Whisper.
 @bot.chat()
 async def echo(context: BotContext, message: str):
     yield ReplyTyping()

@@ -15,3 +15,5 @@ __all__ = [
     "ReplyTyping",
     "ReplyImage",
 ]
+
+__version__ = "0.1.0"
