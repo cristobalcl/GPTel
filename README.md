@@ -49,6 +49,13 @@ async def echo(context: BotContext, message: str):
 bot.run()
 ```
 
+Install
+-------
+
+```
+pip install gptel
+```
+
 Setup
 -----
 
