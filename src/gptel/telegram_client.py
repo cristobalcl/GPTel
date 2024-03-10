@@ -1,4 +1,4 @@
-from typing import Callable, Dict
+from typing import Callable, Dict, List
 
 from telegram import Update
 from telegram.constants import ChatAction
@@ -13,9 +13,11 @@ from telegram.ext import (
 from .base import (
     AbstractApplication,
     AbstractClient,
+    ApplicationConfig,
     BotContext,
     ReplyImage,
     ReplyTyping,
+    BotCommand,
 )
 from .services import TranscriptionClient
 from .utils import temporary_file_path
@@ -94,17 +96,34 @@ def telegram_audio_wrapper(handler: Callable) -> Callable:
 
 
 class TelegramApplication(AbstractApplication):
-    def __init__(self, token: str, data_default: Dict = {}):
-        self.application = Application.builder().token(token).build()
-        self.data_default = data_default
+    def __init__(self, config: ApplicationConfig):
+        super().__init__(config)
+        self.application = Application.builder().token(self.config.token).build()
+        self.data_default = self.config.data_default
+        self.commands_menu: List[BotCommand] = []
+
+    async def setup(self):
+        bot = self.application.bot
+        await bot.set_my_name(self.config.name)
+        await bot.set_my_description(self.config.description)
+        await bot.set_my_commands(
+            (
+                (bot_command.command, bot_command.description)
+                for bot_command in self.commands_menu
+            )
+        )
 
     def run(self):
         self.application.run_polling(allowed_updates=Update.ALL_TYPES)
 
-    def add_handler(self, command: str, handler: Callable):
+    def add_handler(self, bot_command: BotCommand):
         self.application.add_handler(
-            CommandHandler(command, telegram_wrapper(handler, self.data_default))
+            CommandHandler(
+                bot_command.command,
+                telegram_wrapper(bot_command.handler, self.data_default),
+            )
         )
+        self.commands_menu.append(bot_command)
 
     def set_chat_handler(self, handler: Callable):
         self.application.add_handler(
@@ -127,7 +146,5 @@ class TelegramClient(AbstractClient):
     def __init__(self):
         pass
 
-    def get_application(
-        self, token: str, data_default: Dict = {}
-    ) -> AbstractApplication:
-        return TelegramApplication(token, data_default)
+    def get_application(self, config: ApplicationConfig) -> AbstractApplication:
+        return TelegramApplication(config)

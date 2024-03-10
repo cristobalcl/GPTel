@@ -1,16 +1,41 @@
 from abc import abstractmethod
-from typing import Callable, Dict
+from typing import Callable, Dict, Optional
+from dataclasses import dataclass, field
+
+
+@dataclass
+class BotCommand:
+    command: str
+    description: str
+    handler: Callable
+    show_in_menu: Optional[bool] = True
+
+
+@dataclass
+class ApplicationConfig:
+    name: str
+    description: str
+    token: str
+    data_default: Dict = field(default_factory=dict)
 
 
 class AbstractApplication:
     data_default: Dict = {}
+    config: ApplicationConfig
+
+    def __init__(self, config: ApplicationConfig):
+        self.config = config
+
+    @abstractmethod
+    async def setup(self):
+        pass
 
     @abstractmethod
     def run(self):
         pass
 
     @abstractmethod
-    def add_handler(self, command: str, handler: Callable):
+    def add_handler(self, bot_command: BotCommand):
         pass
 
     @abstractmethod
@@ -24,9 +49,7 @@ class AbstractApplication:
 
 class AbstractClient:
     @abstractmethod
-    def get_application(
-        self, token: str, data_default: Dict = {}
-    ) -> AbstractApplication:
+    def get_application(self, config: ApplicationConfig) -> AbstractApplication:
         pass
 
 

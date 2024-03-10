@@ -64,6 +64,15 @@ You need to setup two environment variables:
 - `TELEGRAM_TOKEN`
 - `OPENAI_API_KEY`: for the speech to text service.
 
+To get a new Telegram token for your bot: 
+
+- Open Telegram: Search for `@BotFather`.
+- Start a Chat: Click "Start" to begin a conversation with BotFather.
+- Create Bot: Send `/newbot` to BotFather.
+- Choose Name: Enter a name for your bot when prompted.
+- Set Username: Provide a unique username ending in "bot".
+- Receive Token: BotFather will give you the bot's token. Keep it secure.
+
 Authors
 -------
 
