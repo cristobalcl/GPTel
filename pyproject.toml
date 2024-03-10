@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gptel"
-version = "0.1.1"
+version = "0.2.0"
 description = "Framework to build Telegram bots"
 authors = ["Cristóbal Carnero Liñán <ccarnerolinan@gmail.com>"]
 readme = "README.md"
@@ -51,7 +51,7 @@ source = ["gptel"]
 show_missing = true
 
 [tool.bumpver]
-current_version = "0.1.1"
+current_version = "0.2.0"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 tag_message = "{new_version}"
