@@ -1,4 +1,4 @@
-from gptel import GPTelBot, BotContext, ReplyTyping, ReplyImage
+from gptel import GPTelBot, BotContext, ReplyTyping, ReplyImage, ReplyHelpCommands
 
 
 bot = GPTelBot(
@@ -16,6 +16,7 @@ async def command_start(context: BotContext):
 @bot.command("help", "Print some help")
 async def command_help(context: BotContext):
     yield r"Help!"
+    yield ReplyHelpCommands()
 
 
 @bot.command("switch", "Switch flag")

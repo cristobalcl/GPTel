@@ -4,6 +4,7 @@ from .base import (
     BotContext,
     ReplyImage,
     ReplyTyping,
+    ReplyHelpCommands,
 )
 from .bot import GPTelBot
 
@@ -14,6 +15,7 @@ __all__ = [
     "BotContext",
     "ReplyTyping",
     "ReplyImage",
+    "ReplyHelpCommands",
 ]
 
 __version__ = "0.2.0"

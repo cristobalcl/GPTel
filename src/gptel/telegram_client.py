@@ -17,6 +17,7 @@ from .base import (
     BotContext,
     ReplyImage,
     ReplyTyping,
+    ReplyHelpCommands,
     BotCommand,
 )
 from .services import TranscriptionClient
@@ -52,7 +53,9 @@ async def telegram_send_typing(update, context):
     )
 
 
-def telegram_wrapper(handler: Callable, data_default: Dict = {}) -> Callable:
+def telegram_wrapper(
+    handler: Callable, data_default: Dict = {}, commands_menu: List[BotCommand] = []
+) -> Callable:
     async def wrapped_function(update: Update, context: ContextTypes.DEFAULT_TYPE):
         async_gen = handler(TelegramBotContext(update, context, data_default))
         async for message in async_gen:
@@ -62,6 +65,15 @@ def telegram_wrapper(handler: Callable, data_default: Dict = {}) -> Callable:
                 await telegram_send_typing(update, context)
             elif isinstance(message, ReplyImage):
                 await update.message.reply_photo(message.url)
+            elif isinstance(message, ReplyHelpCommands):
+                message = []
+                if not commands_menu:
+                    continue
+                for command in commands_menu:
+                    message.append(
+                        rf"<b>/{command.command}</b> - {command.description}"
+                    )
+                await update.message.reply_html("\n".join(message))
 
     return wrapped_function
 
@@ -120,7 +132,9 @@ class TelegramApplication(AbstractApplication):
         self.application.add_handler(
             CommandHandler(
                 bot_command.command,
-                telegram_wrapper(bot_command.handler, self.data_default),
+                telegram_wrapper(
+                    bot_command.handler, self.data_default, self.commands_menu
+                ),
             )
         )
         self.commands_menu.append(bot_command)
@@ -129,7 +143,11 @@ class TelegramApplication(AbstractApplication):
         self.application.add_handler(
             MessageHandler(
                 filters.TEXT & ~filters.COMMAND,
-                telegram_wrapper(telegram_text_wrapper(handler), self.data_default),
+                telegram_wrapper(
+                    telegram_text_wrapper(handler),
+                    self.data_default,
+                    self.commands_menu,
+                ),
             )
         )
 
@@ -137,7 +155,11 @@ class TelegramApplication(AbstractApplication):
         self.application.add_handler(
             MessageHandler(
                 filters.VOICE,
-                telegram_wrapper(telegram_audio_wrapper(handler), self.data_default),
+                telegram_wrapper(
+                    telegram_audio_wrapper(handler),
+                    self.data_default,
+                    self.commands_menu,
+                ),
             )
         )
 

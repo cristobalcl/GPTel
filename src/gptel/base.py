@@ -68,6 +68,10 @@ class ReplyImage(ReplyBase):
         self.url = url
 
 
+class ReplyHelpCommands(ReplyBase):
+    pass
+
+
 class BotContext:
     def __init__(self):
         self.user_html = ""
