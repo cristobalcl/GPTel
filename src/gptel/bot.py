@@ -70,7 +70,7 @@ class GPTelBot:
         asyncio.run(self.asetup())
 
     def _parse_arguments(self, arguments):
-        parser = argparse.ArgumentParser(description="GPTelBot")
+        parser = argparse.ArgumentParser(description=self.name)
         parser.add_argument("--setup", action="store_true", help="Setup bot")
         return parser.parse_args(arguments)
 
