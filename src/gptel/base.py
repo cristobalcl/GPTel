@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, List
 from dataclasses import dataclass, field
 
 
@@ -17,6 +17,7 @@ class ApplicationConfig:
     description: str
     token: str
     data_default: Dict = field(default_factory=dict)
+    commands: List[BotCommand] = field(default_factory=list)
 
 
 class AbstractApplication:
@@ -35,7 +36,7 @@ class AbstractApplication:
         pass
 
     @abstractmethod
-    def add_handler(self, bot_command: BotCommand):
+    def add_handlers(self):
         pass
 
     @abstractmethod

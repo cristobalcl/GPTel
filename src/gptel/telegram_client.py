@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List
+from typing import Callable, Dict
 
 from telegram import Update
 from telegram.constants import ChatAction
@@ -18,7 +18,6 @@ from .base import (
     ReplyImage,
     ReplyTyping,
     ReplyHelpCommands,
-    BotCommand,
 )
 from .services import TranscriptionClient
 from .utils import temporary_file_path
@@ -54,10 +53,11 @@ async def telegram_send_typing(update, context):
 
 
 def telegram_wrapper(
-    handler: Callable, data_default: Dict = {}, commands_menu: List[BotCommand] = []
+    handler: Callable,
+    config: ApplicationConfig,
 ) -> Callable:
     async def wrapped_function(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        async_gen = handler(TelegramBotContext(update, context, data_default))
+        async_gen = handler(TelegramBotContext(update, context, config.data_default))
         async for message in async_gen:
             if isinstance(message, str):
                 await update.message.reply_html(message)
@@ -67,9 +67,9 @@ def telegram_wrapper(
                 await update.message.reply_photo(message.url)
             elif isinstance(message, ReplyHelpCommands):
                 message = []
-                if not commands_menu:
+                if not config.commands:
                     continue
-                for command in commands_menu:
+                for command in config.commands:
                     message.append(
                         rf"<b>/{command.command}</b> - {command.description}"
                     )
@@ -111,8 +111,6 @@ class TelegramApplication(AbstractApplication):
     def __init__(self, config: ApplicationConfig):
         super().__init__(config)
         self.application = Application.builder().token(self.config.token).build()
-        self.data_default = self.config.data_default
-        self.commands_menu: List[BotCommand] = []
 
     async def setup(self):
         bot = self.application.bot
@@ -121,33 +119,28 @@ class TelegramApplication(AbstractApplication):
         await bot.set_my_commands(
             (
                 (bot_command.command, bot_command.description)
-                for bot_command in self.commands_menu
+                for bot_command in self.config.commands
+                if bot_command.show_in_menu
             )
         )
 
     def run(self):
         self.application.run_polling(allowed_updates=Update.ALL_TYPES)
 
-    def add_handler(self, bot_command: BotCommand):
-        self.application.add_handler(
-            CommandHandler(
-                bot_command.command,
-                telegram_wrapper(
-                    bot_command.handler, self.data_default, self.commands_menu
-                ),
+    def add_handlers(self):
+        for command in self.config.commands:
+            self.application.add_handler(
+                CommandHandler(
+                    command.command,
+                    telegram_wrapper(command.handler, self.config),
+                )
             )
-        )
-        self.commands_menu.append(bot_command)
 
     def set_chat_handler(self, handler: Callable):
         self.application.add_handler(
             MessageHandler(
                 filters.TEXT & ~filters.COMMAND,
-                telegram_wrapper(
-                    telegram_text_wrapper(handler),
-                    self.data_default,
-                    self.commands_menu,
-                ),
+                telegram_wrapper(telegram_text_wrapper(handler), self.config),
             )
         )
 
@@ -155,11 +148,7 @@ class TelegramApplication(AbstractApplication):
         self.application.add_handler(
             MessageHandler(
                 filters.VOICE,
-                telegram_wrapper(
-                    telegram_audio_wrapper(handler),
-                    self.data_default,
-                    self.commands_menu,
-                ),
+                telegram_wrapper(telegram_audio_wrapper(handler), self.config),
             )
         )
 

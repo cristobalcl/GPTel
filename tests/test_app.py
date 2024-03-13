@@ -42,14 +42,14 @@ class TestBot:
         bot = GPTelBot(
             name="TestBot", description="Test", token="test-token", client=FakeClient()
         )
-        assert bot.application.config == ApplicationConfig(
+        assert bot._get_application().config == ApplicationConfig(
             name="TestBot", description="Test", token="test-token"
         )
 
     @patch.dict(os.environ, {"TELEGRAM_TOKEN": "test-token-env"})
     def test_environment_token(self):
         bot = GPTelBot(name="TestBot", description="Test", client=FakeClient())
-        assert bot.application.config == ApplicationConfig(
+        assert bot._get_application().config == ApplicationConfig(
             name="TestBot", description="Test", token="test-token-env"
         )
 
@@ -107,7 +107,7 @@ class TestBot:
         bot = GPTelBot(
             name="TestBot", description="Test", token="test-token", client=FakeClient()
         )
-        assert not bot.application.run_flag
+        assert not bot._get_application().run_flag
 
         @bot.command("help", "Help command")
         async def help():
@@ -118,8 +118,8 @@ class TestBot:
             print("hello")
 
         bot.run()
-        assert bot.application.bot_commands == [
+        assert bot._get_application().config.commands == [
             BotCommand(command="help", description="Help command", handler=help),
             BotCommand(command="hello", description="Hello world", handler=hello),
         ]
-        assert bot.application.run_flag
+        assert bot._get_application().run_flag

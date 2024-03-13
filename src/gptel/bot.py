@@ -24,14 +24,8 @@ class GPTelBot:
         if not self.token:
             raise ValueError("No token")
         self.client = client or TelegramClient()
-        self.application = self.client.get_application(
-            ApplicationConfig(
-                name=self.name,
-                description=self.description,
-                token=self.token,
-                data_default=self.data_default,
-            )
-        )
+
+        self.application = None
         self.bot_commands: List[BotCommand] = []
         self.chat_handler: Optional[Callable] = None
         self.audio_handler: Optional[Callable] = None
@@ -61,12 +55,25 @@ class GPTelBot:
 
         return decorator
 
+    def _get_application(self):
+        if self.application:
+            return self.application
+        self.application = self.client.get_application(
+            ApplicationConfig(
+                name=self.name,
+                description=self.description,
+                token=self.token,
+                data_default=self.data_default,
+                commands=self.bot_commands,
+            )
+        )
+        return self.application
+
     async def asetup(self):
-        await self.application.setup()
+        await self._get_application().setup()
 
     def setup(self):
-        for command in self.bot_commands:
-            self.application.add_handler(command)
+        self._get_application().add_handlers()
         asyncio.run(self.asetup())
 
     def _parse_arguments(self, arguments):
@@ -81,8 +88,8 @@ class GPTelBot:
             self.setup()
             return
 
-        for bot_command in self.bot_commands:
-            self.application.add_handler(bot_command)
-        self.application.set_chat_handler(self.chat_handler)
-        self.application.set_audio_handler(self.audio_handler)
-        self.application.run()
+        application = self._get_application()
+        application.add_handlers()
+        application.set_chat_handler(self.chat_handler)
+        application.set_audio_handler(self.audio_handler)
+        application.run()
